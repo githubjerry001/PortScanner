@@ -104,7 +104,11 @@ class OptimizedPortScannerApp:
         """
         self.master = master
         master.title("高性能端口扫描器 - 接近nmap速度")
-        master.geometry("700x500")
+        master.geometry("850x650")
+        master.minsize(800, 600)
+        
+        # 设置Win11风格主题
+        self.setup_win11_theme()
         
         # 初始化高性能扫描器
         self.scanner = HighPerformanceScanner(max_concurrent=2000, timeout=0.05)
@@ -116,100 +120,194 @@ class OptimizedPortScannerApp:
         self.loop = None
         self.loop_thread = None
 
+    def setup_win11_theme(self):
+        """设置Win11风格主题"""
+        # 配置样式
+        style = ttk.Style()
+        
+        # 设置主题
+        if 'win' in tk.Tk().tk.call('tk', 'windowingsystem'):
+            style.theme_use('vista')
+        else:
+            style.theme_use('default')
+        
+        # 配置Win11风格的颜色和字体
+        self.bg_color = '#ffffff'
+        self.frame_bg_color = '#f3f3f3'
+        self.fg_color = '#202020'
+        self.accent_color = '#0078d4'
+        self.button_color = '#f0f0f0'
+        self.button_hover_color = '#e5f1fb'
+        self.border_color = '#e1e1e1'
+        
+        self.master.configure(bg=self.bg_color)
+        
+        # 配置标签框架样式
+        style.configure('Win11.TLabelframe', background=self.frame_bg_color, foreground=self.fg_color, 
+                       borderwidth=1, relief='solid')
+        style.configure('Win11.TLabelframe.Label', background=self.frame_bg_color, foreground=self.fg_color,
+                       font=('Segoe UI', 10, 'bold'))
+        
+        # 配置按钮样式
+        style.configure('Win11.TButton', background=self.button_color, foreground=self.fg_color,
+                       font=('Segoe UI', 9), borderwidth=1, relief='solid')
+        style.map('Win11.TButton', background=[('active', self.button_hover_color)])
+        
+        # 配置输入框样式
+        style.configure('Win11.TEntry', fieldbackground='white', foreground=self.fg_color,
+                       font=('Segoe UI', 9), borderwidth=1)
+        
+        # 配置进度条样式
+        style.configure('Win11.Horizontal.TProgressbar', background=self.accent_color,
+                       troughcolor='#e0e0e0', borderwidth=0)
+        
+        # 配置下拉框样式
+        style.configure('Win11.TCombobox', fieldbackground='white', foreground=self.fg_color,
+                       font=('Segoe UI', 9))
+        
+        # 配置树形视图样式
+        style.configure('Win11.Treeview', background='white', foreground=self.fg_color,
+                       fieldbackground='white', font=('Segoe UI', 9))
+        style.configure('Win11.Treeview.Heading', background='#f0f0f0', foreground=self.fg_color,
+                       font=('Segoe UI', 9, 'bold'))
+        
+        # 配置标签样式
+        style.configure('Win11.TLabel', background=self.frame_bg_color, foreground=self.fg_color,
+                       font=('Segoe UI', 9))
+        
+        # 配置主标签样式
+        style.configure('Title.TLabel', background=self.bg_color, foreground=self.fg_color,
+                       font=('Segoe UI', 16, 'bold'))
+        
+        # 配置状态标签样式
+        style.configure('Status.TLabel', background=self.bg_color, foreground=self.fg_color,
+                       font=('Segoe UI', 9))
+
     def create_widgets(self):
         """创建程序界面组件，包含IP输入、端口输入、控制按钮和结果显示区域"""
+        # 主容器
+        main_frame = tk.Frame(self.master, bg=self.bg_color)
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 标题
+        title_label = ttk.Label(main_frame, text="高性能端口扫描器", style='Title.TLabel')
+        title_label.pack(pady=(0, 20))
+        
         # IP地址输入区域
-        ip_frame = ttk.LabelFrame(self.master, text="IP地址范围")
-        ip_frame.pack(pady=10, padx=10, fill='x')
+        ip_frame = ttk.LabelFrame(main_frame, text="IP地址范围", style='Win11.TLabelframe')
+        ip_frame.pack(pady=10, fill='x')
         
-        ttk.Label(ip_frame, text="起始IP:").grid(row=0, column=0)
-        self.start_ip = ttk.Entry(ip_frame)
+        ip_inner_frame = tk.Frame(ip_frame, bg=self.frame_bg_color)
+        ip_inner_frame.pack(fill='x', padx=15, pady=15)
+        
+        tk.Label(ip_inner_frame, text="起始IP:", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=0, padx=(0, 10), sticky='w')
+        self.start_ip = ttk.Entry(ip_inner_frame, style='Win11.TEntry', width=20)
         self.start_ip.insert(0, get_local_ip())
-        self.start_ip.grid(row=0, column=1)
+        self.start_ip.grid(row=0, column=1, padx=(0, 20), sticky='w')
         
-        ttk.Label(ip_frame, text="结束IP:").grid(row=0, column=2)
-        self.end_ip = ttk.Entry(ip_frame)
-        self.end_ip.grid(row=0, column=3)
-
+        tk.Label(ip_inner_frame, text="结束IP:", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=2, padx=(0, 10), sticky='w')
+        self.end_ip = ttk.Entry(ip_inner_frame, style='Win11.TEntry', width=20)
+        self.end_ip.grid(row=0, column=3, sticky='w')
+        
         # 端口输入区域
-        port_frame = ttk.LabelFrame(self.master, text="扫描端口")
-        port_frame.pack(pady=10, padx=10, fill='x')
+        port_frame = ttk.LabelFrame(main_frame, text="扫描端口", style='Win11.TLabelframe')
+        port_frame.pack(pady=10, fill='x')
         
-        ttk.Label(port_frame, text="端口（逗号分隔或范围）:").grid(row=0, column=0)
-        self.ports_entry = ttk.Entry(port_frame)
+        port_inner_frame = tk.Frame(port_frame, bg=self.frame_bg_color)
+        port_inner_frame.pack(fill='x', padx=15, pady=15)
+        
+        tk.Label(port_inner_frame, text="端口（逗号分隔或范围）:", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=0, padx=(0, 15), sticky='w')
+        self.ports_entry = ttk.Entry(port_inner_frame, style='Win11.TEntry')
         self.ports_entry.insert(0, "22,80,443,3389,8080,1-1000")  # 默认常用端口
-        self.ports_entry.grid(row=0, column=1, sticky='ew')
-        
+        self.ports_entry.grid(row=0, column=1, sticky='ew', padx=(0, 15))
+        port_inner_frame.columnconfigure(1, weight=1)
+
         # 扫描参数配置
-        config_frame = ttk.LabelFrame(self.master, text="扫描参数")
-        config_frame.pack(pady=10, padx=10, fill='x')
+        config_frame = ttk.LabelFrame(main_frame, text="扫描参数", style='Win11.TLabelframe')
+        config_frame.pack(pady=10, fill='x')
         
-        ttk.Label(config_frame, text="并发数:").grid(row=0, column=0, padx=5)
-        self.concurrent_entry = ttk.Entry(config_frame, width=8)
+        config_inner_frame = tk.Frame(config_frame, bg=self.frame_bg_color)
+        config_inner_frame.pack(fill='x', padx=15, pady=15)
+        
+        tk.Label(config_inner_frame, text="并发数:", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=0, padx=(0, 10), sticky='w')
+        self.concurrent_entry = ttk.Entry(config_inner_frame, style='Win11.TEntry', width=10)
         self.concurrent_entry.insert(0, '2000')
-        self.concurrent_entry.grid(row=0, column=1, padx=5)
+        self.concurrent_entry.grid(row=0, column=1, padx=(0, 20), sticky='w')
         
-        ttk.Label(config_frame, text="超时(ms):").grid(row=0, column=2, padx=5)
-        self.timeout_entry = ttk.Entry(config_frame, width=8)
+        tk.Label(config_inner_frame, text="超时(ms):", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=2, padx=(0, 10), sticky='w')
+        self.timeout_entry = ttk.Entry(config_inner_frame, style='Win11.TEntry', width=10)
         self.timeout_entry.insert(0, '50')
-        self.timeout_entry.grid(row=0, column=3, padx=5)
+        self.timeout_entry.grid(row=0, column=3, padx=(0, 20), sticky='w')
         
-        ttk.Label(config_frame, text="扫描模式:").grid(row=0, column=4, padx=5)
-        self.scan_mode = ttk.Combobox(config_frame, values=["TCP Connect", "TCP SYN"], width=12)
+        tk.Label(config_inner_frame, text="扫描模式:", font=('Segoe UI', 9), bg=self.frame_bg_color).grid(row=0, column=4, padx=(0, 10), sticky='w')
+        self.scan_mode = ttk.Combobox(config_inner_frame, values=["TCP Connect", "TCP SYN"], 
+                                     width=15, style='Win11.TCombobox')
         self.scan_mode.set("TCP Connect")
-        self.scan_mode.grid(row=0, column=5, padx=5)
+        self.scan_mode.grid(row=0, column=5, sticky='w')
+        config_inner_frame.columnconfigure(5, weight=1)
 
         # 控制按钮和进度
-        btn_frame = ttk.Frame(self.master)
-        btn_frame.pack(pady=10, fill='x', padx=10)
+        btn_frame = tk.Frame(main_frame, bg=self.bg_color)
+        btn_frame.pack(pady=15, fill='x')
         
         # 进度条
-        self.progress = ttk.Progressbar(btn_frame, orient='horizontal', mode='determinate')
-        self.progress.pack(fill='x', pady=5)
+        self.progress = ttk.Progressbar(btn_frame, orient='horizontal', mode='determinate', 
+                                       style='Win11.Horizontal.TProgressbar')
+        self.progress.pack(fill='x', pady=(0, 15))
         
         # 控制按钮
-        control_frame = ttk.Frame(btn_frame)
+        control_frame = tk.Frame(btn_frame, bg=self.bg_color)
         control_frame.pack()
         
-        self.scan_btn = ttk.Button(control_frame, text="开始高速扫描", command=self.start_scan)
+        self.scan_btn = ttk.Button(control_frame, text="开始高速扫描", style='Win11.TButton',
+                                  command=self.start_scan)
         self.scan_btn.pack(side='left', padx=5)
         
-        self.stop_btn = ttk.Button(control_frame, text="停止", command=self.stop_scan, state='disabled')
+        self.stop_btn = ttk.Button(control_frame, text="停止", style='Win11.TButton',
+                                  command=self.stop_scan, state='disabled')
         self.stop_btn.pack(side='left', padx=5)
         
         # 状态显示
-        self.status_label = ttk.Label(btn_frame, text="就绪开始扫描...")
-        self.status_label.pack(pady=5)
+        self.status_label = ttk.Label(btn_frame, text="就绪开始扫描...", style='Status.TLabel')
+        self.status_label.pack(pady=(15, 0))
 
         # 结果显示区域
-        result_frame = ttk.LabelFrame(self.master, text="扫描结果")
-        result_frame.pack(pady=10, padx=10, fill='both', expand=True)
+        result_frame = ttk.LabelFrame(main_frame, text="扫描结果", style='Win11.TLabelframe')
+        result_frame.pack(pady=10, fill='both', expand=True)
         
         # 结果统计
-        stats_frame = ttk.Frame(result_frame)
-        stats_frame.pack(fill='x', pady=5)
+        stats_frame = tk.Frame(result_frame, bg=self.frame_bg_color)
+        stats_frame.pack(fill='x', pady=15, padx=15)
         
-        self.stats_label = ttk.Label(stats_frame, text="开放端口: 0 | 已扫描: 0 | 总计: 0 | 速度: 0 端口/秒")
+        self.stats_label = ttk.Label(stats_frame, text="开放端口: 0 | 已扫描: 0 | 总计: 0 | 速度: 0 端口/秒", 
+                                    style='Win11.TLabel')
         self.stats_label.pack()
         
-        self.result_tree = ttk.Treeview(result_frame, columns=('ip', 'port', 'status', 'service'), show='headings')
+        # 创建Treeview和滚动条的容器
+        tree_container = tk.Frame(result_frame, bg=self.frame_bg_color)
+        tree_container.pack(fill='both', expand=True, padx=15, pady=(0, 15))
+        
+        self.result_tree = ttk.Treeview(tree_container, columns=('ip', 'port', 'status', 'service'), 
+                                       show='headings', style='Win11.Treeview')
         self.result_tree.heading('ip', text='IP地址')
         self.result_tree.heading('port', text='端口')
         self.result_tree.heading('status', text='状态')
         self.result_tree.heading('service', text='服务')
         
         # 设置列宽
-        self.result_tree.column('ip', width=120)
-        self.result_tree.column('port', width=80)
-        self.result_tree.column('status', width=80)
-        self.result_tree.column('service', width=100)
+        self.result_tree.column('ip', width=150)
+        self.result_tree.column('port', width=100)
+        self.result_tree.column('status', width=100)
+        self.result_tree.column('service', width=150)
         
         # 添加滚动条
-        scrollbar = ttk.Scrollbar(result_frame, orient='vertical', command=self.result_tree.yview)
-        self.result_tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar_y = ttk.Scrollbar(tree_container, orient='vertical', command=self.result_tree.yview)
+        scrollbar_x = ttk.Scrollbar(tree_container, orient='horizontal', command=self.result_tree.xview)
+        self.result_tree.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
         
         self.result_tree.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
+        scrollbar_y.pack(side='right', fill='y')
+        scrollbar_x.pack(side='bottom', fill='x')
 
     def get_service_name(self, port: int) -> str:
         """根据端口号获取服务名称"""
